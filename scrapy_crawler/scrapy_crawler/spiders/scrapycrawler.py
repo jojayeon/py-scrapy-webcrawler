@@ -39,7 +39,7 @@ class BasicSpider(scrapy.Spider):
         self.word_count = Counter()
 
         self.total_word_count = Counter()
-        self.excluded_words = []
+        self.excluded_words = ["이", "가", "은", "는", "께", "서"]
 
 
     def parse(self, response):
@@ -67,20 +67,19 @@ class BasicSpider(scrapy.Spider):
         for xpath in self.xpath_expressions:
             paragraphs = response.xpath(xpath).getall()
             if paragraphs:
+                # self.log(f'Extracted paragraphs with XPath {xpath}: {paragraphs}')
                 for paragraph in paragraphs:
-                    # 단어 추출 및 카운팅
                     words = okt.nouns(paragraph)
                     filtered_words = [word for word in words if word not in self.excluded_words]
-        
-        # 단어의 빈도수를 계산합니다.
-        self.word_count.update(filtered_words)
-        self.total_word_count.update(filtered_words)
+                    self.word_count.update(filtered_words)
+                    self.total_word_count.update(filtered_words)
+
 
     def closed(self, reason):
         # 스파이더가 종료될 때 단어 개수를 출력
         total_words = sum(self.word_count.values())
         site_word_counts = {site: count for site, count in self.word_count.items()}
-        min_word_count = 2  # 예시: 단어가 최소 5개 이상인 경우만 표기
+        min_word_count = 30 # 예시: 단어가 최소 5개 이상인 경우만 표기
 
         with open('word_counts.txt', 'w', encoding='utf-8') as f:
             f.write(f'Total word count: {total_words}\n\n')
